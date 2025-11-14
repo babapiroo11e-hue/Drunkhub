@@ -1,0 +1,146 @@
+-- DESYNC ONLY SCRIPT WITH GUI A
+-- (Working version)
+
+--========================================================--
+--               DESYNC ONLY • CUSTOM GUI A                --
+--========================================================--
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LocalPlayer = Players.LocalPlayer
+
+--========================================================--
+--                     DESYNC SYSTEM                       --
+--========================================================--
+
+local function enableMobileDesync()
+    local success, errorMsg = pcall(function()
+
+        local backpack = LocalPlayer:WaitForChild("Backpack")
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local humanoid = character:WaitForChild("Humanoid")
+
+        local packages = ReplicatedStorage:WaitForChild("Packages", 5)
+        if not packages then return false end
+
+        local netFolder = packages:WaitForChild("Net", 5)
+        if not netFolder then return false end
+
+        local useItemRemote =
+            netFolder:FindFirstChild("RE/UseItem")
+        local teleportRemote =
+            netFolder:FindFirstChild("RE/QuantumCloner/OnTeleport")
+
+        if not useItemRemote or not teleportRemote then
+            warn("Missing remotes.")
+            return false
+        end
+
+        local tool
+        local toolNames = {"Quantum Cloner", "Brainrot", "brainrot"}
+
+        for _, name in ipairs(toolNames) do
+            tool = backpack:FindFirstChild(name) or character:FindFirstChild(name)
+            if tool then break end
+        end
+
+        if tool and tool.Parent == backpack then
+            humanoid:EquipTool(tool)
+            task.wait(0.4)
+        end
+
+        if setfflag then setfflag("WorldStepMax", "-9999999999") end
+        task.wait(0.15)
+
+        useItemRemote:FireServer()
+        task.wait(1)
+        teleportRemote:FireServer()
+
+        task.wait(1.6)
+        if setfflag then setfflag("WorldStepMax", "-1") end
+
+        print("DESYNC ON")
+        return true
+    end)
+
+    if not success then
+        warn("DESYNC ERROR: " .. tostring(errorMsg))
+        return false
+    end
+
+    return success
+end
+
+local function disableMobileDesync()
+    pcall(function()
+        if setfflag then setfflag("WorldStepMax", "0.125") end
+        print("DESYNC OFF")
+    end)
+end
+
+--========================================================--
+--                          GUI                            --
+--========================================================--
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DESYNC_GUI"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 250, 0, 150)
+Frame.Position = UDim2.new(0.5, -125, 0.4, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Text = "DESYNC PANEL"
+Title.TextSize = 18
+Title.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Parent = Frame
+
+local Toggle = Instance.new("TextButton")
+Toggle.Size = UDim2.new(0, 200, 0, 40)
+Toggle.Position = UDim2.new(0.5, -100, 0.45, 0)
+Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+Toggle.Text = "DESYNC: OFF"
+Toggle.TextColor3 = Color3.new(1, 1, 1)
+Toggle.Parent = Frame
+
+local Activate = Instance.new("TextButton")
+Activate.Size = UDim2.new(0, 200, 0, 40)
+Activate.Position = UDim2.new(0.5, -100, 0.75, 0)
+Activate.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+Activate.TextColor3 = Color3.new(1, 1, 1)
+Activate.Text = "Activate Now"
+Activate.Parent = Frame
+
+local desyncOn = false
+
+local function updateUI()
+    if desyncOn then
+        Toggle.Text = "DESYNC: ON"
+        Toggle.BackgroundColor3 = Color3.fromRGB(0, 200, 70)
+    else
+        Toggle.Text = "DESYNC: OFF"
+        Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+    end
+end
+
+Toggle.MouseButton1Click:Connect(function()
+    desyncOn = not desyncOn
+    if desyncOn then enableMobileDesync() else disableMobileDesync() end
+    updateUI()
+end)
+
+Activate.MouseButton1Click:Connect(function()
+    enableMobileDesync()
+    desyncOn = true
+    updateUI()
+end)
+
+updateUI()
